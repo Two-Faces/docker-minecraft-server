@@ -6,7 +6,7 @@ Docker image that runs a Minecraft Bedrock server.
 
 Lightweight multiplexer/proxy for Minecraft Java servers. Provided as a stand-alone application and a Docker image.
 
-### [itzg/bungeecord](https://github.com/itzg/docker-bungeecord/)
+### [itzg/mc-proxy](https://github.com/itzg/docker-bungeecord/)
 
 Docker image that runs a proxy powered by Bungeecord, Velocity, or Waterfall
 
@@ -29,3 +29,7 @@ A tool that is bundled with this image to provide complex, re-usable preparation
 ### [itzg/rcon](https://github.com/itzg/docker-rcon-web-admin)
 
 An image that dockerizes [rcon-web-admin](https://github.com/rcon-web-admin/rcon-web-admin).
+
+### [AutoStopper](https://github.com/Criseda/AutoStopper)
+
+A Velocity plugin that stops idle backend servers and wakes them when players connect, with readiness-aware Docker lifecycle management.

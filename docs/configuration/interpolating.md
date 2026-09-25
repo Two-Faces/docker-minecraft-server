@@ -4,26 +4,22 @@ title: Modifying config files
 
 ## Replacing variables inside configs
 
-Sometimes you have mods or plugins that require configuration information that is only available at runtime.
-For example if you need to configure a plugin to connect to a database,
-you don't want to include this information in your Git repository or Docker image.
-Or maybe you have some runtime information like the server name that needs to be set
-in your config files after the container starts.
+Sometimes you have mods or plugins that require configuration information that is only available at deploy-time. For example if you need to configure a plugin to connect to a database, you don't want to include this information in your Git repository or Docker image.
+Or maybe you have some runtime information like the server name that needs to be set in your config files after the container starts.
 
-For those cases there is the option to replace defined variables inside your configs
-with environment variables defined at container runtime.
+For those cases there is the option to replace defined variables inside your configs with environment variables defined at container runtime.
 
 When the environment variable `REPLACE_ENV_IN_PLACE` is set to `true` (the default), the startup script will go through all files inside the container's `/data` path and replace variables that match the container's environment variables. Variables can instead (or in addition to) be replaced in files sync'ed from `/plugins`, `/mods`, and `/config` by setting `REPLACE_ENV_DURING_SYNC` to `true` (defaults to `false`).
 
 Variables that you want to replace need to be declared inside curly brackets and prefixed with a dollar sign, such as  `${CFG_YOUR_VARIABLE}`, which is same as many scripting languages.
 
-You can also change `REPLACE_ENV_VARIABLE_PREFIX`, which defaults to "CFG_", to limit which environment variables are allowed to be used. For example, with "CFG_" as the prefix, the variable `${CFG_DB_HOST}` would be subsituted, but not `${DB_HOST}`.
+You can also change `REPLACE_ENV_VARIABLE_PREFIX`, which defaults to "CFG_", to limit which environment variables are allowed to be used. For example, with "CFG_" as the prefix, the variable `${CFG_DB_HOST}` would be substituted, but not `${DB_HOST}`. The prefix can be set to an empty string to allow for matching any variable name.
 
 If you want to use a file's content for value, such as when using secrets mounted as files, declare the placeholder named like normal in the file and declare an environment variable named the same but with the suffix `_FILE`.
 
 For example, a `my.cnf` file could contain:
 
-```
+```toml
 [client]
 password = ${CFG_DB_PASSWORD}
 ```
@@ -54,8 +50,7 @@ REPLACE_ENV_VARIABLES_EXCLUDE_PATHS="/data/plugins/Essentials/userdata /data/plu
 
 Here is a full example where we want to replace values inside a `database.yml`.
 
-```yml
-
+```yaml
 ---
 database:
   host: ${CFG_DB_HOST}
@@ -63,11 +58,10 @@ database:
   password: ${CFG_DB_PASSWORD}
 ```
 
-This is how your `docker-compose.yml` file could look like:
+This is how your `compose.yaml` file could look like:
 
-```yml
-version: "3.8"
-# Other docker-compose examples in /examples
+```yaml title="compose.yaml"
+# Other docker compose examples in /examples
 
 services:
   minecraft:
@@ -101,11 +95,11 @@ secrets:
 
 ## Patching existing files
 
-JSON path based patches can be applied to one or more existing files by setting the variable `PATCH_DEFINITIONS` to the path of a directory that contains one or more [patch definition json files](https://github.com/itzg/mc-image-helper#patchdefinition) or a [patch set json file](https://github.com/itzg/mc-image-helper#patchset).
+JSON path based patches can be applied to one or more existing files by setting the variable `PATCH_DEFINITIONS` to the path of a directory that contains one or more [patch definition json files](https://github.com/itzg/mc-image-helper#patchdefinition) or a [patch set json file](https://github.com/itzg/mc-image-helper#patchset). 
 
-Variable placeholders in the patch values can be restricted by setting `REPLACE_ENV_VARIABLE_PREFIX`, which defaults to "CFG_".
+The `file` and `value` fields of the patch definitions may contain `${...}` variable placeholders. The allowed environment variables in placeholders can be restricted by setting `REPLACE_ENV_VARIABLE_PREFIX`, which defaults to "CFG_".
 
-The following example shows a patch-set file were various fields in the `paper.yaml` configuration file can be modified and added:
+The following example shows a patch-set file where various fields in the `paper.yaml` configuration file can be modified and added:
 
 ```json
 {
@@ -139,4 +133,8 @@ The following example shows a patch-set file were various fields in the `paper.y
 }
 ```
 
-> **NOTES:** Only JSON and Yaml files can be patched at this time. TOML support is planned to be added next. Removal of comments and other cosmetic changes will occur when patched files are processed.
+Supports the file formats:
+- JSON
+- JSON5
+- Yaml
+- TOML, but processed output is not pretty

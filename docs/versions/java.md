@@ -1,55 +1,152 @@
-## Running Minecraft server on different Java version
+## Image tags
 
-!!! note
+Image references can either omit the tag, which implies the tag `latest`, such as
 
-    For Forge versions less than 1.18, you _must_ use the `java8-multiarch` (or other java8) image tag.
+    itzg/minecraft-server
 
-    In general, if you see the following line in a server startup failure, then it means you need to be using Java 8 instead of the latest image Java version:
+or explicitly include the tag, such as
 
-    ```
-    Caused by: java.lang.ClassCastException: class jdk.internal.loader.ClassLoaders$AppClassLoader 
-       cannot be cast to class java.net.URLClassLoader
-    ```
+    itzg/minecraft-server:<tag>
 
-When using the image `itzg/minecraft-server` without a tag, the `latest` image tag is implied from the table below. To use a different version of Java, please use an alternate tag to run your Minecraft server container. The `stable` tag is similar to `latest`; however, it tracks [the most recent repository release/tag](https://github.com/itzg/docker-minecraft-server/releases/latest).
+where `<tag>` refers to the first column of this table:
 
-| Tag name          | Java version | Linux  | JVM Type    | Architecture      |
-|-------------------|--------------|--------|-------------|-------------------|
-| latest            | 17           | Ubuntu | Hotspot     | amd64,arm64,armv7 |
-| stable            | 17           | Ubuntu | Hotspot     | amd64,arm64,armv7 |
-| java8             | 8            | Alpine | Hotspot     | amd64             |
-| java8-jdk         | 8            | Ubuntu | Hotspot+JDK | amd64             |
-| java8-multiarch   | 8            | Ubuntu | Hotspot     | amd64,arm64,armv7 |
-| java8-openj9      | 8            | Debian | OpenJ9      | amd64             |
-| java8-graalvm-ce  | 8            | Oracle | GraalVM CE  | amd64             |
-| java11            | 11           | Ubuntu | Hotspot     | amd64,arm64,armv7 |
-| java11-jdk        | 11           | Ubuntu | Hotspot+JDK | amd64,arm64,armv7 |
-| java11-openj9     | 11           | Debian | OpenJ9      | amd64             |
-| java17            | 17           | Ubuntu | Hotspot     | amd64,arm64,armv7 |
-| java17-jdk        | 17           | Ubuntu | Hotspot+JDK | amd64,arm64,armv7 |
-| java17-openj9     | 17           | Debian | OpenJ9      | amd64             |
-| java17-graalvm-ce | 17           | Oracle | GraalVM CE  | amd64,arm64       |
-| java17-alpine     | 17           | Alpine | Hotspot     | amd64             |
-| java20-alpine     | 19           | Alpine | Hotspot     | amd64             |
-| java20            | 19           | Ubuntu | Hotspot     | amd64,arm64       |
+| Tag           | Java version | Linux  | JVM Type    | Architecture          | Note |
+|---------------|--------------|--------|-------------|-----------------------|------|
+| latest        | 25           | Ubuntu | Hotspot     | amd64, arm64, riscv64 |      |
+| stable        | 25           | Ubuntu | Hotspot     | amd64, arm64, riscv64 |      |
+| java25        | 25           | Ubuntu | Hotspot     | amd64, arm64, riscv64 |      |
+| java25-alpine | 25           | Alpine | Hotspot     | amd64, arm64          |      |
+| java25-jdk    | 25           | Ubuntu | Hotspot+JDK | amd64, arm64          |      |
+| java25-graalvm | 25          | Oracle | Oracle GraalVM | amd64, arm64       | (2)(3) |
+| java21        | 21           | Ubuntu | Hotspot     | amd64, arm64          |      |
+| java21-jdk    | 21           | Ubuntu | Hotspot+JDK | amd64, arm64          |      |
+| java21-alpine | 21           | Alpine | Hotspot     | amd64, arm64          |      |
+| java21-graalvm | 21          | Oracle | Oracle GraalVM | amd64, arm64       | (2)(3) |
+| java17        | 17           | Ubuntu | Hotspot     | amd64, arm64, armv7   |      |
+| java17-graalvm | 17          | Oracle | Oracle GraalVM | amd64, arm64       | (2)(3) |
+| java16        | 16           | Ubuntu | Hotspot     | amd64, arm64, armv7   | (1)  |
+| java11        | 11           | Ubuntu | Hotspot     | amd64, arm64, armv7   |      |
+| java8         | 8            | Ubuntu | Hotspot     | amd64, arm64, armv7   |      |
 
-For example, to use Java version 8 on any supported architecture:
+Notes
 
-    docker run --name mc itzg/minecraft-server:java8-multiarch
+1. This version of Java is [recommended for PaperMC 1.16.5](https://docs.papermc.io/paper/getting-started/#requirements)
+2. Based on the [Oracle GraalVM images](https://blogs.oracle.com/java/post/new-oracle-graalvm-container-images), which as of JDK 17, are now under the [GraalVM Free License](https://blogs.oracle.com/java/post/graalvm-free-license) incorporating what used to be known as the GraalVM Enterprise.
+3. Due to these images using Oracle Linux, (which is based on Red Hat Enterprise Linux) Forge Installer will not work due to its use of zlib-ng. Use other images for initial installation and Forge version upgrade.
 
-!!! note
+!!! example "Example using java8"
 
-    Keep in mind that some versions of Minecraft server, such as Forge before 1.17, can't work on the newest versions of Java. Instead, one of the Java 8 images should be used. Also, FORGE doesn't support openj9 JVM implementation.
+    With docker run command-line
     
-    Some versions of vanilla Minecraft, such as 1.10, also do not run correctly with Java 17. If in doubt, use `java8-multiarch` for any version less than 1.17.
+    ```
+    docker run -it -e EULA=true itzg/minecraft-server:java8
+    ```
+    
+    or in a compose file
+    
+    ```yaml
+    services:
+      mc:
+        image: itzg/minecraft-server:java8
+    ```
 
-### Deprecated Image Tags
+!!! note "Latest"
+
+    The "latest" tag shifts to include not only the latest features and bug fixes, but also the latest Java version that Mojang requires for the latest Minecraft version.
+
+!!! tip "Class File Version"
+
+    If the Minecraft startup is logging an error about a "class file version", then refer [to this table](https://javaalmanac.io/bytecode/versions/) to identify the JDK/Java version corresponding to each class file version.
+
+### Release versions
+
+Since the tags referenced above will shift as the newest image build brings in new features and bug fixes, released variants of those can also be used to pin a specific build of the image.
+
+The syntax of released image tags is:
+
+    itzg/minecraft-server:<release>-<java tag>
+
+where `java tag` still refers to the first column of the table above and `release` refers to [one of the image releases](https://github.com/itzg/docker-minecraft-server/releases).
+
+!!! example
+
+    For example, the 2024.4.0 release of the Java 17 image would be
+    
+    ```
+    itzg/minecraft-server:2024.4.0-java17
+    ```
+
+### Stable image tag
+
+The `stable` image tag combines the benefits of `latest` and [release versions](#release-versions) since it shifts to refer to the most recently released version. There is also a per-variant stable tag, formatted as `stable-{variant}`.
+
+## Version compatibilities
+
+[This section in the Minecraft wiki](https://minecraft.wiki/w/Tutorials/Update_Java#Why_update?) lists out versions of **vanilla** Minecraft versions and the corresponding Java version that is required.
+
+### Class file version 65.0
+
+If encountering a startup failure similar to the following examples, then ensure that the latest image has been re-pulled to use a Java 21. Alternatively, set the image tag specifically to `itzg/minecraft-server:java21`.
+
+> Exception in thread "ServerMain" java.lang.UnsupportedClassVersionError: org/bukkit/craftbukkit/Main has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 61.0
+
+or
+
+> Error: LinkageError occurred while loading main class net.minecraft.bundler.Main
+java.lang.UnsupportedClassVersionError: net/minecraft/bundler/Main has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 61.0
+
+
+### Forge versions
+
+Forge and its mods sometimes utilize non-public APIs of the JVM and as such are suspceptible to becoming broken with newer Java versions.
+
+#### Java 21
+
+Some mods even up to Minecraft 1.21 require Java 17 and will not run on the latest Java version. If you see an error like the following then be sure to explicitly use a Java 17 tagged image:
+
+```
+Caused by: org.spongepowered.asm.mixin.throwables.ClassMetadataNotFoundException: java.util.List
+	at MC-BOOTSTRAP/org.spongepowered.mixin/org.spongepowered.asm.mixin.transformer.MixinPreProcessorStandard.transformMethod(MixinPreProcessorStandard.java:754)
+```
+
+#### Java 8
+
+For Forge versions less than 1.18, you _must_ use the `java8` (or other java8) image tag.
+
+!!! warning "Java 8 is in maintenance mode"
+
+    The `java8` / `java8-jdk` tags, and other pre-Java 17 tags (`java11`, `java16`), pin an older `mc-image-helper` that predates the baked-in CurseForge API key. `AUTO_CURSEFORGE` and `CURSEFORGE_FILES` on those images require you to set `CF_API_KEY` yourself. Java 17+ images include a key and do not need this.
+
+In general, if you see the following line in a server startup failure, then it means you need to be using Java 8 instead of the latest image Java version:
+
+```
+Caused by: java.lang.ClassCastException: class jdk.internal.loader.ClassLoaders$AppClassLoader 
+   cannot be cast to class java.net.URLClassLoader
+```
+
+Forge also doesn't support openj9 JVM implementation.
+
+## Deprecated Image Tags
 
 The following image tags have been deprecated and are no longer receiving updates:
-- java19
+
 - adopt13
 - adopt14
 - adopt15
 - openj9-nightly
 - multiarch-latest
-- java16/java16-openj9
+- java16-openj9
+- java17-graalvm-ce
+- java17-openj9
+- java17-alpine
+- java19
+- java20-graalvm, java20, java20-alpine
+- java23-*
+- java24, java24-graalvm 
+- java8-multiarch is still built and pushed, but please move to java8 instead
+- java8-alpine, java8-jdk, java8-openj9, java8-graalvm-ce
+
+## JSON Listing
+
+
+Information about the image tags is available for programmatic access at <https://raw.githubusercontent.com/itzg/docker-minecraft-server/refs/heads/master/images.json>
